@@ -1,9 +1,11 @@
-package fastxor
+package fastxor_test
 
 import (
 	"bytes"
 	"testing"
 	"testing/quick"
+
+	"github.com/DarkByteLabs/fastxor"
 )
 
 func refBytes(dst, a, b []byte) int {
@@ -69,7 +71,7 @@ func TestBytes(t *testing.T) {
 
 		dst1 := make([]byte, len(a))
 		dst2 := make([]byte, len(a))
-		Bytes(dst1, a, b)
+		fastxor.Bytes(dst1, a, b)
 		refBytes(dst2, a, b)
 		return bytes.Equal(dst1, dst2)
 	}, &quick.Config{MaxCount: 10000})
@@ -82,7 +84,7 @@ func TestBytes(t *testing.T) {
 	for i := range a {
 		a[i] = byte(i)
 	}
-	Bytes(a, a, a)
+	fastxor.Bytes(a, a, a)
 	if !bytes.Equal(a, make([]byte, len(a))) {
 		t.Error("bad xor of large slice")
 	}
@@ -98,7 +100,7 @@ func TestByte(t *testing.T) {
 
 		dst1 := make([]byte, len(a))
 		dst2 := make([]byte, len(a))
-		Byte(dst1, a, b)
+		fastxor.Byte(dst1, a, b)
 		refByte(dst2, a, b)
 		return bytes.Equal(dst1, dst2)
 	}, &quick.Config{MaxCount: 10000})
@@ -111,7 +113,7 @@ func TestBlock(t *testing.T) {
 	err := quick.Check(func(a, b [16]byte) bool {
 		dst1 := make([]byte, len(a))
 		dst2 := make([]byte, len(a))
-		Block(dst1, a[:], b[:])
+		fastxor.Block(dst1, a[:], b[:])
 		refBlock(dst2, a[:], b[:])
 		return bytes.Equal(dst1, dst2)
 	}, &quick.Config{MaxCount: 10000})
@@ -126,7 +128,7 @@ func BenchmarkBytes(b *testing.B) {
 			buf := make([]byte, n)
 			b.SetBytes(int64(len(buf)))
 			for i := 0; i < b.N; i++ {
-				Bytes(buf, buf, buf)
+				fastxor.Bytes(buf, buf, buf)
 			}
 		}
 	}
@@ -156,7 +158,7 @@ func BenchmarkByte(b *testing.B) {
 			buf := make([]byte, n)
 			b.SetBytes(int64(len(buf)))
 			for i := 0; i < b.N; i++ {
-				Byte(buf, buf, 'b')
+				fastxor.Byte(buf, buf, 'b')
 			}
 		}
 	}
@@ -186,7 +188,7 @@ func BenchmarkBlock(b *testing.B) {
 	bufB := make([]byte, 16)
 	b.SetBytes(16)
 	for i := 0; i < b.N; i++ {
-		Block(dst, bufA, bufB)
+		fastxor.Block(dst, bufA, bufB)
 	}
 }
 
