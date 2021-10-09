@@ -12,7 +12,7 @@ import (
 func xorBytesSSE(dst, a, b []byte, n int)
 
 //go:noescape
-func xorBytesAVX(dst, a, b []byte, n int)
+func xorBytesAVX2(dst, a, b []byte, n int)
 
 func min(a, b, c int) int {
 	if a < b {
@@ -32,8 +32,8 @@ func Bytes(dst, a, b []byte) int {
 		return 0
 	}
 	switch {
-	case cpu.X86.HasAVX:
-		xorBytesAVX(dst, a, b, n)
+	case cpu.X86.HasAVX2:
+		xorBytesAVX2(dst, a, b, n)
 	case cpu.X86.HasSSE2:
 		xorBytesSSE(dst, a, b, n)
 	default:
@@ -53,11 +53,17 @@ func xorBytesGeneric(dst, a, b []byte, n int) {
 		dw := *(*[]uintptr)(unsafe.Pointer(&dst))
 		aw := *(*[]uintptr)(unsafe.Pointer(&a))
 		bw := *(*[]uintptr)(unsafe.Pointer(&b))
+		_ = aw[w-1]
+		_ = bw[w-1]
+		_ = dw[w-1]
 		for i := 0; i < w; i++ {
 			dw[i] = aw[i] ^ bw[i]
 		}
 	}
 
+	_ = dst[n-1]
+	_ = a[n-1]
+	_ = b[n-1]
 	for i := (n - n%wordSize); i < n; i++ {
 		dst[i] = a[i] ^ b[i]
 	}
@@ -81,11 +87,15 @@ func Byte(dst, a []byte, b byte) int {
 	if w > 0 {
 		dw := *(*[]uintptr)(unsafe.Pointer(&dst))
 		aw := *(*[]uintptr)(unsafe.Pointer(&a))
+		_ = aw[w-1]
+		_ = dw[w-1]
 		for i := 0; i < w; i++ {
 			dw[i] = aw[i] ^ bw
 		}
 	}
 
+	_ = dst[n-1]
+	_ = a[n-1]
 	for i := (n - n%wordSize); i < n; i++ {
 		dst[i] = a[i] ^ b
 	}
